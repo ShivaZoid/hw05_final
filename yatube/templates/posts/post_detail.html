@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+
+{% block title %}
+    <title> Пост {{ post_info.text|truncatechars:30 }}</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+    <div class="row">
+        <aside class="col-12 col-md-3">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+            Дата публикации: {{post_info.pub_date|date:"d E Y"}}
+            </li>
+            <!-- если у поста есть группа -->
+            <li class="list-group-item">
+            Группа: {{post_info.group.title}}
+            {% if post_info.group %}
+            <a href="{% url 'posts:group_list' post_info.group.slug %}">
+                все записи группы
+            </a>
+            {% else%}
+            <p>У данного текста нет группы.</p>
+            {% endif %}
+            </li>
+            <li class="list-group-item">
+            Автор: {{post_info.author.get_full_name }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+            Всего постов автора: {{number_of_posts}}
+            </li>
+            <li class="list-group-item">
+            <a href="{% url 'posts:profile' post_info.author.username %}">
+                все посты пользователя
+            </a>
+            </li>
+            {% if request.user.id == post_info.author.id %}
+                <a class="btn btn-primary"
+                href="{% url 'posts:post_edit' post_info.id %}">
+                    редактировать запись
+                </a>
+            {% endif %}
+        </ul>
+        </aside>
+        <article class="col-12 col-md-9">
+        {% thumbnail post_info.image "960x339" crop="center" upscale=True as im %}
+            <img
+            class="card-img my-2"
+            src="{{ im.url }}"
+            width="{{ im.width }}"
+            height="{{ im.height }}"
+            >
+        {% endthumbnail %}
+        <p>{{ post_info.text }}</p>
+        {% include 'includes/comment.html' %}
+        </article>
+    </div>
+    </div>
+{% endblock %}

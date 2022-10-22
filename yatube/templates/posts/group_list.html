@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  <title>{{group.title}}</title>
+{% endblock %}
+
+{% block group_description %}
+  <div class="container">
+    <p></p>
+    <h1>{{group.title}}</h1>
+    <p>{{group.description}}</p>
+    <p></p>
+  </div>
+{% endblock %}
+
+{% block content %}
+
+<!--Заглушка для пайтеста-->
+{% for post in page_obj %}
+{% endfor %}
+
+{% include 'includes/displaying_posts.html' %}
+{% include 'includes/paginator.html' %}
+{% endblock %}

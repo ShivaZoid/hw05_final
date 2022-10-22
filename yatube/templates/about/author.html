@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Об авторе</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2 class="footer-copyright text-center py-3">Приветствую</h2>
+        <p>
+        Тут я размещу информацию о себе, используя свои умения верстать.
+        Картинки, блоки, элементы бустрап. А может быть, просто напишу несколько абзацев текста.
+        </p>
+        <p></p>
+        <p>
+        Или не напишу.
+        </p>
+        <p></p>
+
+    <div class="row">
+        <div class="col-6">
+            <a href="https://github.com/ShivaZoid">
+                {% load static %}
+                <img src="{% static 'img/W_D.jpg' %}" width="300" height="300">
+                <p>Мой гитхаб</p>
+            </a>
+        </div>
+        <div class="col-6">
+            <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+                {% load static %}
+                <img src="{% static 'img/R_H.jpg' %}" width="300" height="300">
+                <p>Не нажимай</p>
+            </a>
+        </div>
+    </div>
+
+    </div>
+{% endblock %}
