@@ -1,7 +1,9 @@
+from django import forms
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
-from django import forms
-from ..models import Post, Group, User, Comment, Follow
+
+from ..models import Post, Group, User, Follow
 
 
 class PostPagesTests(TestCase):
@@ -9,6 +11,7 @@ class PostPagesTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create(username='NoName')
+        cls.user_author = User.objects.create(username='user_author')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
@@ -19,7 +22,10 @@ class PostPagesTests(TestCase):
             text='Тестовый пост',
             group=cls.group,
         )
-
+        cls.post_author = Post.objects.create(
+            text='Тестовая подписка',
+            author=cls.user_author,
+        )
         cls.templates_pages_names = {
             reverse('posts:index'): 'posts/index.html',
             reverse(
@@ -41,6 +47,8 @@ class PostPagesTests(TestCase):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(PostPagesTests.user)
+        self.authorized_client_author = Client()
+        self.authorized_client_author.force_login(PostPagesTests.user_author)
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -124,40 +132,26 @@ class PostPagesTests(TestCase):
                 form_field = response.context['page_obj']
                 self.assertNotIn(expected, form_field)
 
-    def test_comment_correct_context(self):
-        """Валидная форма Комментария создает запись в Post."""
-        self.comment = Comment.objects.create(
-            author=self.user,
-            text='Тестовый коммент',
-        )
-        last_comment = Comment.objects.order_by('id').last()
-        comments_count = Comment.objects.count()
-        form_data = {'text': 'Тестовый коммент'}
-        response = self.authorized_client.post(
-            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
-            data=form_data,
-            follow=True,
-        )
-
-        self.assertRedirects(
-            response, reverse(
-                'posts:post_detail', kwargs={'post_id': self.post.id}
-            )
-        )
-        self.assertEqual(Comment.objects.count(), comments_count + 1)
-        self.assertEqual(str(last_comment), self.comment.text)
-        self.assertEqual(last_comment.author, self.comment.author)
-
     def test_cache(self):
         """Проверка кеша."""
+        post = Post.objects.create(
+            text='тестовый кэш',
+            author=self.user,
+        )
         client = self.guest_client.get(reverse('posts:index'))
+
         response_1 = client
         post_cache_1 = response_1.content
+        post.delete()
 
-        Post.objects.get(id=1).delete()
         response_2 = client
         post_cache_2 = response_2.content
         self.assertEqual(post_cache_1, post_cache_2)
+
+        cache.clear()
+        response_3 = client
+        post_cache_3 = response_3.content
+        self.assertEqual(post_cache_1, post_cache_3)
 
     def test_follow_page(self):
         """Проверка подписки."""
@@ -182,6 +176,36 @@ class PostPagesTests(TestCase):
         Follow.objects.all().delete()
         response_4 = self.authorized_client.get(reverse('posts:follow_index'))
         self.assertEqual(len(response_4.context['page_obj']), 0)
+
+    def test_follow_on_user(self):
+        """Проверка подписки."""
+        count_follow = Follow.objects.count()
+        self.authorized_client_author.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.user},
+            )
+        )
+        follow = Follow.objects.all().latest('id')
+
+        self.assertEqual(Follow.objects.count(), count_follow + 1)
+        self.assertEqual(follow.author.id, self.user.id)
+        self.assertEqual(follow.user.id, self.user_author.id)
+
+    def test_unfollow_on_user(self):
+        """Проверка отписки."""
+        Follow.objects.create(
+            user=self.user_author,
+            author=self.user
+        )
+        count_follow = Follow.objects.count()
+        self.authorized_client_author.get(
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': self.user},
+            )
+        )
+        self.assertEqual(Follow.objects.count(), count_follow - 1)
 
 
 class PaginatorViewsTest(TestCase):

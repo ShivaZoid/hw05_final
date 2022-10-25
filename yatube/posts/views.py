@@ -1,12 +1,13 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Post, Group, User, Comment, Follow
-from .forms import PostForm, CommentForm
 from typing import Any, Dict
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 
+from .models import Post, Group, User, Comment, Follow
+from .forms import PostForm, CommentForm
+
+# Для кэширования index и follow_index
 # from django.views.decorators.cache import cache_page
 
 
@@ -59,7 +60,7 @@ def profile(request, username):
     paginator = Paginator(posts, ITEMS_PER_PAGE)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    follow = profile_user.following.exists()
+    follow = profile_user.following.filter(user=request.user.id)
     context: Dict[str, Any] = {
         'posts': posts,
         'profile_user': profile_user,
@@ -182,6 +183,7 @@ def follow_index(request):
     context: Dict[str, Any] = {
         'page_obj': page_obj,
         'title': title,
+        'follower': follower,
     }
     return render(request, template, context)
 
@@ -191,11 +193,11 @@ def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
     if request.user != author:
         Follow.objects.get_or_create(user=request.user, author=author)
-    return redirect('posts:follow_index')
+    return redirect('posts:profile', username)
 
 
 @login_required
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     Follow.objects.get(user=request.user, author=author).delete()
-    return redirect('posts:follow_index')
+    return redirect('posts:profile', username)

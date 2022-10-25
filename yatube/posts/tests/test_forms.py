@@ -1,12 +1,12 @@
 import shutil
 import tempfile
+from http import HTTPStatus
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from http import HTTPStatus
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Post, Group, User
+from ..models import Post, Group, User, Comment
 
 
 class PostFormTests(TestCase):
@@ -105,6 +105,36 @@ class PostFormTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count)
         self.assertEqual(str(last_post), self.post.text)
         self.assertEqual(last_post.author, self.post.author)
+
+    def test_comment_correct_context(self):
+        """Валидная форма Комментария создает запись в Post."""
+        self.post = Post.objects.create(
+            author=self.user,
+            text='Тестовый текст',
+        )
+        self.comment = Comment.objects.create(
+            author=self.user,
+            text='Тестовый коммент',
+        )
+        last_comment = Comment.objects.order_by('id').last()
+        comments_count = Comment.objects.count()
+        form_data = {
+            'text': 'Тестовый коммент'
+        }
+        response = self.authorized_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
+            data=form_data,
+            follow=True,
+        )
+
+        self.assertRedirects(
+            response, reverse(
+                'posts:post_detail', kwargs={'post_id': self.post.id}
+            )
+        )
+        self.assertEqual(Comment.objects.count(), comments_count + 1)
+        self.assertEqual(str(last_comment), self.comment.text)
+        self.assertEqual(last_comment.author, self.comment.author)
 
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)

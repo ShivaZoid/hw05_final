@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Post, Group
+
+from .models import Post, Group, Comment, Follow
 
 
 @admin.register(Post)
@@ -32,6 +33,7 @@ class GroupAdmin(admin.ModelAdmin):
 
     Attributes:
         list_display: отображаемые поля.
+        search_fields: интерфейс для поиска по тайтлу.
     """
 
     list_display = (
@@ -39,7 +41,42 @@ class GroupAdmin(admin.ModelAdmin):
         'title',
         'slug',
         'description',
-
     )
     search_fields = ('title',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    """Конфигурация отображения данных.
+
+    Attributes:
+        list_display: отображаемые поля.
+        list_filter: возможность фильтрации по дате.
+    """
+
+    list_display = (
+        'pk',
+        'post',
+        'author',
+        'text',
+        'created',
+    )
+    list_filter = ('created',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    """Конфигурация отображения данных.
+
+    Attributes:
+        list_display: отображаемые поля.
+    """
+
+    list_display = (
+        'pk',
+        'user',
+        'author',
+    )
     empty_value_display = '-пусто-'

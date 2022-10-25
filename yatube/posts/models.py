@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+
 from .validators import validate_not_empty
 
 User = get_user_model()
@@ -14,9 +15,14 @@ class Group(models.Model):
         description: описание сообщества.
     """
 
-    title = models.CharField(max_length=200)
+    title = models.CharField(
+        verbose_name='Название группы',
+        max_length=200,
+        )
     slug = models.SlugField(max_length=100, unique=True)
-    description = models.TextField()
+    description = models.TextField(
+        verbose_name='Описание',
+    )
 
     def __str__(self) -> str:
         return self.title
@@ -40,11 +46,13 @@ class Post(models.Model):
         validators=[validate_not_empty]
     )
     pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
         auto_now_add=True,
         db_index=True
     )
     author = models.ForeignKey(
         User,
+        verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='posts'
     )
@@ -78,12 +86,14 @@ class Comment(models.Model):
     """
     post = models.ForeignKey(
         Post,
+        verbose_name='Текст поста',
         related_name='comments',
         blank=True, null=True,
         on_delete=models.SET_NULL,
     )
     author = models.ForeignKey(
         User,
+        verbose_name='Автор',
         on_delete=models.CASCADE,
         related_name='comments',
     )
@@ -107,13 +117,23 @@ class Follow(models.Model):
         user: ссылка на пользователя, который подписывается.
         author: ссылка на пользователя, на которого подписываются.
     """
+
     user = models.ForeignKey(
         User,
+        verbose_name='Подписчик',
         related_name='follower',
         on_delete=models.CASCADE,
     )
     author = models.ForeignKey(
         User,
+        verbose_name='Автор',
         related_name='following',
         on_delete=models.CASCADE,
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_employee_user'
+            )
+        ]
