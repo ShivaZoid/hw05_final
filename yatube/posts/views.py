@@ -8,14 +8,14 @@ from .models import Post, Group, User, Comment, Follow
 from .forms import PostForm, CommentForm
 
 # Для кэширования index и follow_index
-from django.views.decorators.cache import cache_page
+# from django.views.decorators.cache import cache_page
 
 
 ITEMS_PER_PAGE: int = 5
 
 
 # НЕКОТОРЫЕ ТЕСТЫ МОГУТ НЕ ПРОЙТИ, НУЖНО ЗАКОММИТИТЬ @cache_page !!!
-@cache_page(10 * 1)
+# @cache_page(10 * 1)
 def index(request):
     """Главная страница."""
     posts = Post.objects.select_related('author').order_by('-pub_date')
@@ -162,7 +162,7 @@ def add_comment(request, post_id):
 
 # НЕКОТОРЫЕ ТЕСТЫ МОГУТ НЕ ПРОЙТИ, НУЖНО ЗАКОММИТИТЬ @cache_page !!!
 @login_required
-@cache_page(10 * 1)
+# @cache_page(10 * 1)
 def follow_index(request):
     """ Страница постов подписанных авторов.
 
