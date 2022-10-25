@@ -18,7 +18,7 @@ class Group(models.Model):
     title = models.CharField(
         verbose_name='Название группы',
         max_length=200,
-        )
+    )
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField(
         verbose_name='Описание',
