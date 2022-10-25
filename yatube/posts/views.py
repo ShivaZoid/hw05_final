@@ -56,7 +56,7 @@ def profile(request, username):
     paginator = Paginator(posts, ITEMS_PER_PAGE)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    follow = profile_user.following.filter(user=request.user.id)
+    follow = profile_user.following.filter(user=request.user.id).exists()
     context: Dict[str, Any] = {
         'posts': posts,
         'profile_user': profile_user,
