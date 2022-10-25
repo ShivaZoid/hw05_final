@@ -6,8 +6,8 @@
 
 {% block content %}
     {% load cache %}
-
+        {% cache 10 index_page page_obj %}
         {% include 'includes/displaying_posts.html' %}
         {% include 'includes/paginator.html' %}
-
+        {% endcache %}
 {% endblock %}

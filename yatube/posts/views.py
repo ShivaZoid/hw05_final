@@ -1,4 +1,5 @@
 from typing import Any, Dict
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -7,15 +8,10 @@ from django.http import HttpResponseForbidden
 from .models import Post, Group, User, Comment, Follow
 from .forms import PostForm, CommentForm
 
-# Для кэширования index и follow_index
-# from django.views.decorators.cache import cache_page
-
 
 ITEMS_PER_PAGE: int = 5
 
 
-# НЕКОТОРЫЕ ТЕСТЫ МОГУТ НЕ ПРОЙТИ, НУЖНО ЗАКОММИТИТЬ @cache_page !!!
-# @cache_page(10 * 1)
 def index(request):
     """Главная страница."""
     posts = Post.objects.select_related('author').order_by('-pub_date')
@@ -160,9 +156,7 @@ def add_comment(request, post_id):
     return redirect('posts:post_detail', post_id=post_id)
 
 
-# НЕКОТОРЫЕ ТЕСТЫ МОГУТ НЕ ПРОЙТИ, НУЖНО ЗАКОММИТИТЬ @cache_page !!!
 @login_required
-# @cache_page(10 * 1)
 def follow_index(request):
     """ Страница постов подписанных авторов.
 

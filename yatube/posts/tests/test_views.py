@@ -133,25 +133,21 @@ class PostPagesTests(TestCase):
                 self.assertNotIn(expected, form_field)
 
     def test_cache(self):
-        """Проверка кеша."""
+        """Проверка кэша."""
         post = Post.objects.create(
             text='тестовый кэш',
             author=self.user,
         )
-        client = self.guest_client.get(reverse('posts:index'))
 
-        response_1 = client
-        post_cache_1 = response_1.content
+        post_cache_1 = self.guest_client.get(reverse('posts:index')).content
         post.delete()
 
-        response_2 = client
-        post_cache_2 = response_2.content
+        post_cache_2 = self.guest_client.get(reverse('posts:index')).content
         self.assertEqual(post_cache_1, post_cache_2)
 
         cache.clear()
-        response_3 = client
-        post_cache_3 = response_3.content
-        self.assertEqual(post_cache_1, post_cache_3)
+        post_cache_3 = self.guest_client.get(reverse('posts:index')).content
+        self.assertNotEqual(post_cache_1, post_cache_3)
 
     def test_follow_page(self):
         """Проверка подписки."""
